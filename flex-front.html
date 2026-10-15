@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Abdul Moiz - Add and Remove Elements</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef7ee;
+            text-align: center;
+            padding: 30px;
+        }
+
+        h1 {
+            color: darkgreen;
+        }
+
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            background-color: darkgreen;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .flex-container > div {
+            background-color: #f1f1f1;
+            margin: 10px;
+            padding: 20px;
+            font-size: 22px;
+            border-radius: 5px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Abdul Moiz - Add and Remove Elements</h1>
+
+    <p>Enter an item and add it to the front of the row.</p>
+
+    <input type="text" id="newItem" placeholder="Enter item name">
+
+    <button onclick="addFront()">Add Front</button>
+
+    <button onclick="removeEveryOther()">Remove Every Other</button>
+
+    <p id="message">Items will appear below.</p>
+
+    <div class="flex-container" id="target">
+        <div class="item">Item 1</div>
+        <div class="item">Item 2</div>
+        <div class="item">Item 3</div>
+        <div class="item">Item 4</div>
+    </div>
+
+    <script>
+
+        function addFront() {
+            let input = document.getElementById("newItem");
+            let value = input.value.trim();
+
+            if (value === "") {
+                document.getElementById("message").innerHTML =
+                    "Please enter an item name.";
+                return;
+            }
+
+            let container = document.getElementById("target");
+
+            let element = document.createElement("div");
+            element.className = "item";
+            element.textContent = value;
+
+            let first = container.firstChild;
+
+            container.insertBefore(element, first);
+
+            input.value = "";
+
+            let items = document.getElementsByClassName("item");
+
+            document.getElementById("message").innerHTML =
+                "Item added to front. Total items: " + items.length;
+        }
+
+        function removeEveryOther() {
+            let container = document.getElementById("target");
+
+            let elements = container.getElementsByClassName("item");
+
+            let items = Array.from(elements);
+
+            for (let i = 0; i < items.length; i += 2) {
+                container.removeChild(items[i]);
+            }
+
+            document.getElementById("message").innerHTML =
+                "Every other item removed.";
+        }
+
+    </script>
+
+</body>
+</html>

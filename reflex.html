@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Abdul Moiz Reflex Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #eef7ee;
+            padding: 40px;
+        }
+
+        h1 {
+            color: darkgreen;
+        }
+
+        #target {
+            font-size: 30px;
+            margin: 25px;
+            font-weight: bold;
+        }
+
+        #counter {
+            font-size: 50px;
+            color: darkblue;
+            margin: 20px;
+        }
+
+        button {
+            font-size: 20px;
+            padding: 12px 30px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        #success {
+            font-size: 22px;
+            color: darkgreen;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Abdul Moiz Reflex Game</h1>
+
+    <p id="target">Time display</p>
+
+    <p id="counter">10</p>
+
+    <button onclick="startGame()">Start</button>
+
+    <button onclick="stopGame()">Stop</button>
+
+    <p id="success" onclick="recordTime()">
+        Click here to record your time
+    </p>
+
+    <script>
+        let startTime;
+        let stopTime;
+        let running = false;
+        let timerIds = [];
+
+        function startGame() {
+            timerIds.forEach(clearTimeout);
+            timerIds = [];
+
+            running = true;
+            startTime = new Date();
+            stopTime = undefined;
+
+            document.getElementById("target").innerHTML =
+                "Countdown started!";
+
+            document.getElementById("success").innerHTML =
+                "Click here to record your time";
+
+            document.getElementById("counter").innerHTML = "10";
+
+            for (let i = 10; i >= 0; i--) {
+                let delay = (10 - i) * 1000;
+
+                let timerId = setTimeout(function() {
+                    if (running) {
+                        document.getElementById("counter").innerHTML = i;
+                    }
+                }, delay);
+
+                timerIds.push(timerId);
+            }
+
+            let finalTimer = setTimeout(function() {
+                if (running) {
+                    running = false;
+                    document.getElementById("target").innerHTML =
+                        "Too slow! Time is up.";
+                }
+            }, 10000);
+
+            timerIds.push(finalTimer);
+        }
+
+        function stopGame() {
+            if (!running) {
+                return;
+            }
+
+            running = false;
+            timerIds.forEach(clearTimeout);
+            timerIds = [];
+
+            stopTime = new Date();
+
+            let elapsed = stopTime - startTime;
+
+            document.getElementById("target").innerHTML =
+                "Stopped successfully!";
+
+            document.getElementById("success").innerHTML =
+                "Your time was " + elapsed + " milliseconds.";
+        }
+
+        function recordTime() {
+            if (startTime === undefined) {
+                document.getElementById("success").innerHTML =
+                    "Please start the game first.";
+                return;
+            }
+
+            if (stopTime === undefined) {
+                document.getElementById("success").innerHTML =
+                    "Stop the timer first.";
+                return;
+            }
+
+            let elapsed = stopTime - startTime;
+
+            document.getElementById("success").innerHTML =
+                "Recorded time: " + elapsed + " milliseconds.";
+        }
+    </script>
+</body>
+</html>
