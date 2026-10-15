@@ -135,97 +135,216 @@
 </div>
 
 
+
 <script>
-    const ids = Array.from({length: 36}, (_, i) => "img" + i);
+const ids = Array.from({length: 36}, (_, i) => "img" + i);
 
-    let score = 0;
-    let locationsVisited = 0;
-    let lastLocation = 0;
+let score = 0;
+let locationsVisited = 0;
+let lastLocation = 0;
+let gameOver = false;
+let visited = new Set();
 
-    let poisonLocation = 19;
-    let roseLocation = 14;
-    let lilyLocations = [3, 25];
-    let daisyLocations = [2, 5, 11, 20, 21];
+function randomPosition(excluded = []) {
+    let available = Array.from({length: 36}, (_, i) => i)
+        .filter(i => !excluded.includes(i));
 
-    let gameOver = false;
-    let visited = new Set();
+    return available[Math.floor(Math.random() * available.length)];
+}
 
-    function check(position) {
-        if (gameOver) {
-            return;
-        }
+// BONUS: Random flower and poison ivy positions
+let poisonLocation = randomPosition();
+let roseLocation = randomPosition([poisonLocation]);
 
-        let image = document.getElementById(ids[position]);
+let lilyLocations = [];
+let daisyLocations = [];
 
-        if (!visited.has(position)) {
-            visited.add(position);
+for (let i = 0; i < 2; i++) {
+    lilyLocations.push(randomPosition([
+        poisonLocation, roseLocation,
+        ...lilyLocations, ...daisyLocations
+    ]));
+}
 
-            if (position === poisonLocation) {
-                image.src = "images/poison.jpg";
-                score -= 4;
-                gameOver = true;
-            }
-            else if (position === roseLocation) {
-                image.src = "images/rose.jpg";
-                score += 4;
-            }
-            else if (lilyLocations.includes(position)) {
-                image.src = "images/lilly.jpg";
-                score += 2;
-            }
-            else if (daisyLocations.includes(position)) {
-                image.src = "images/daisy.jpg";
-                score += 1;
-            }
-        }
+for (let i = 0; i < 5; i++) {
+    daisyLocations.push(randomPosition([
+        poisonLocation, roseLocation,
+        ...lilyLocations, ...daisyLocations
+    ]));
+}
 
+function updateDisplay() {
+    document.getElementById("locations").innerHTML =
+        "Number of locations checked is " + locationsVisited + ".";
+
+    document.getElementById("score").innerHTML =
+        "Score is " + score + ".";
+}
+
+function endGame() {
+    gameOver = true;
+    document.getElementById("help").innerHTML =
+        "Game Over! You found poison ivy.";
+}
+
+function check(position) {
+    if (gameOver) return;
+
+    let image = document.getElementById(ids[position]);
+
+    if (!visited.has(position)) {
+        visited.add(position);
         locationsVisited++;
         lastLocation = position;
 
-        document.getElementById("locations").innerHTML =
-            "Number of locations checked is " + locationsVisited + ".";
-
-        document.getElementById("score").innerHTML =
-            "Score is " + score + ".";
-
-        if (gameOver) {
-            document.getElementById("help").innerHTML =
-                "Game Over! You found poison ivy.";
+        if (position === poisonLocation) {
+            image.src = "images/poison.jpg";
+            score -= 4;
+            endGame();
         }
+        else if (position === roseLocation) {
+            image.src = "images/rose.jpg";
+            score += 4;
+        }
+        else if (lilyLocations.includes(position)) {
+            image.src = "images/lilly.jpg";
+            score += 2;
+        }
+        else if (daisyLocations.includes(position)) {
+            image.src = "images/daisy.jpg";
+            score += 1;
+        }
+
+        updateDisplay();
     }
+}
 
-    function showHelp() {
-        let result = "warm";
+function showHelp() {
+    let result = "warm";
+    let row = Math.floor(lastLocation / 6);
+    let col = lastLocation % 6;
+    let nearby = [];
 
-        let row = Math.floor(lastLocation / 6);
-        let col = lastLocation % 6;
-        let nearby = [];
-
-        for (let r = row - 1; r <= row + 1; r++) {
-            for (let c = col - 1; c <= col + 1; c++) {
-                if (r >= 0 && r < 6 && c >= 0 && c < 6) {
-                    nearby.push(r * 6 + c);
-                }
+    for (let r = row - 1; r <= row + 1; r++) {
+        for (let c = col - 1; c <= col + 1; c++) {
+            if (r >= 0 && r < 6 && c >= 0 && c < 6) {
+                nearby.push(r * 6 + c);
             }
         }
-
-        if (nearby.includes(poisonLocation)) {
-            result = "watch out";
-        }
-        else if (nearby.includes(roseLocation)) {
-            result = "hot";
-        }
-        else if (nearby.some(p => lilyLocations.includes(p))) {
-            result = "warm";
-        }
-        else {
-            result = "cold";
-        }
-
-        document.getElementById("help").innerHTML =
-            "Help report: " + result;
     }
+
+    if (nearby.includes(poisonLocation)) {
+        result = "watch out";
+    }
+    else if (nearby.includes(roseLocation)) {
+        result = "hot";
+    }
+    else if (nearby.some(p => lilyLocations.includes(p))) {
+        result = "warm";
+    }
+    else {
+        result = "cold";
+    }
+
+    document.getElementById("help").innerHTML =
+        "Help report: " + result;
+}
+
+// BONUS: Move poison ivy N/E/S/W
+function movePoisonIvy() {
+    if (gameOver) return;
+
+    let row = Math.floor(poisonLocation / 6);
+    let col = poisonLocation % 6;
+    let possibleMoves = [];
+
+    if (row > 0) possibleMoves.push(poisonLocation - 6);
+    if (row < 5) possibleMoves.push(poisonLocation + 6);
+    if (col > 0) possibleMoves.push(poisonLocation - 1);
+    if (col < 5) possibleMoves.push(poisonLocation + 1);
+
+    // Avoid moving onto flower positions
+    possibleMoves = possibleMoves.filter(p =>
+        p !== roseLocation &&
+        !lilyLocations.includes(p) &&
+        !daisyLocations.includes(p)
+    );
+
+    if (possibleMoves.length === 0) return;
+
+    let oldPosition = poisonLocation;
+    let nextPosition = possibleMoves[
+        Math.floor(Math.random() * possibleMoves.length)
+    ];
+
+    poisonLocation = nextPosition;
+
+    // Update already revealed poison ivy
+    if (visited.has(oldPosition)) {
+        document.getElementById(ids[oldPosition]).src =
+            "images/bush.jpg";
+    }
+
+    if (visited.has(nextPosition)) {
+        document.getElementById(ids[nextPosition]).src =
+            "images/poison.jpg";
+    }
+
+    // BONUS: Game over if ivy reaches player's square
+    if (poisonLocation === lastLocation && locationsVisited > 0) {
+        score -= 4;
+        updateDisplay();
+        document.getElementById(ids[poisonLocation]).src =
+            "images/poison.jpg";
+        endGame();
+    }
+}
+
+// BONUS: Randomly swap two unvisited locations
+function swapLocations() {
+    if (gameOver) return;
+
+    let available = Array.from({length: 36}, (_, i) => i)
+        .filter(i => !visited.has(i));
+
+    if (available.length < 2) return;
+
+    let a = available[Math.floor(Math.random() * available.length)];
+    available = available.filter(i => i !== a);
+    let b = available[Math.floor(Math.random() * available.length)];
+
+    function getType(position) {
+        if (position === poisonLocation) return "poison";
+        if (position === roseLocation) return "rose";
+        if (lilyLocations.includes(position)) return "lily";
+        if (daisyLocations.includes(position)) return "daisy";
+        return "bush";
+    }
+
+    let typeA = getType(a);
+    let typeB = getType(b);
+
+    function setType(position, type) {
+        if (type === "poison") poisonLocation = position;
+        if (type === "rose") roseLocation = position;
+        if (type === "lily") lilyLocations.push(position);
+        if (type === "daisy") daisyLocations.push(position);
+    }
+
+    lilyLocations = lilyLocations.filter(p => p !== a && p !== b);
+    daisyLocations = daisyLocations.filter(p => p !== a && p !== b);
+
+    setType(a, typeB);
+    setType(b, typeA);
+}
+
+// Move ivy every 3 seconds
+setInterval(movePoisonIvy, 3000);
+
+// Swap two hidden locations every 5 seconds
+setInterval(swapLocations, 5000);
 </script>
+
 
 
 </body>

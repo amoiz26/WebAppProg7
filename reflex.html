@@ -71,6 +71,7 @@
             running = true;
             startTime = new Date();
             stopTime = undefined;
+            let countdown = Math.floor(Math.random() * 6) + 5;
 
             document.getElementById("target").innerHTML =
                 "Countdown started!";
@@ -78,10 +79,10 @@
             document.getElementById("success").innerHTML =
                 "Click here to record your time";
 
-            document.getElementById("counter").innerHTML = "10";
+           document.getElementById("counter").innerHTML = countdown;
 
-            for (let i = 10; i >= 0; i--) {
-                let delay = (10 - i) * 1000;
+            for (let i = countdown; i >= 0; i--) {
+               let delay = (countdown - i) * 1000;
 
                 let timerId = setTimeout(function() {
                     if (running) {
@@ -98,7 +99,7 @@
                     document.getElementById("target").innerHTML =
                         "Too slow! Time is up.";
                 }
-            }, 10000);
+          }, countdown * 1000);
 
             timerIds.push(finalTimer);
         }
